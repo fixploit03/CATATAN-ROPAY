@@ -9,7 +9,7 @@ Stegseek adalah cracker steghide secepat kilat yang dapat digunakan untuk mengek
 > Pastikan Anda sudah dalam mode superuser (root).
 
 ```
-cd /usr/share ; apt-get update ; apt-get install libmhash-dev ; apt-get install libmcrypt-dev ; apt-get install libjpeg-dev ; apt-get install zlib1g-dev ; apt-get install build-essential ; apt-get install cmake ; apt-get install git ; git clone https://github.com/RickdeJager/stegseek.git ; cd stegseek ; mkdir -p build ; cd build ; cmake -DCMAKE_BUILD_TYPE=Release .. ; make ; make install ; cd -
+cd /usr/share ; apt-get update -y ; apt-get install libmhash-dev -y ; apt-get install libmcrypt-dev -y ; apt-get install libjpeg-dev -y ; apt-get install zlib1g-dev -y ; apt-get install build-essential -y ; apt-get install cmake -y ; apt-get install git -y ; git clone https://github.com/RickdeJager/stegseek.git ; cd stegseek ; mkdir -p build ; cd build ; cmake -DCMAKE_BUILD_TYPE=Release .. ; make ; make install ; cd -
 ```
 
 # Penggunaan 
