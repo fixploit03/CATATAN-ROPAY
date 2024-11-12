@@ -11,3 +11,9 @@ Stegseek adalah cracker steghide secepat kilat yang dapat digunakan untuk mengek
 ```
 cd /usr/share ; apt-get update ; apt-get install libmhash-dev ; apt-get install libmcrypt-dev ; apt-get install libjpeg-dev ; apt-get install zlib1g-dev ; apt-get install build-essential ; apt-get install cmake ; apt-get install git ; git clone https://github.com/RickdeJager/stegseek.git ; cd stegseek ; mkdir -p build ; cd build ; cmake -DCMAKE_BUILD_TYPE=Release .. ; make ; make install ; cd -
 ```
+
+# Penggunaan 
+
+```
+stegseek --crack -sf [stego_file.jpg] -wl [wordlist.txt] -f -v
+```
