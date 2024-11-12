@@ -27,3 +27,5 @@ stegseek --crack -sf [stego_file.jpg] -wl [wordlist.txt] -f -v
 - **`-v`** : Menampilkan informasi rinci (verbose) selama proses cracking.
 
 > Untuk penggunaan lebih lanjut ketikkan perintah '`stegseek --help`'
+
+Hacking is fun ;)
