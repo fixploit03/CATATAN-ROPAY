@@ -17,3 +17,13 @@ cd /usr/share ; apt-get update ; apt-get install libmhash-dev ; apt-get install 
 ```
 stegseek --crack -sf [stego_file.jpg] -wl [wordlist.txt] -f -v
 ```
+
+**Keterangan**:
+
+- **`--crack`** : Mengaktifkan mode cracking. 
+- **`-sf`** : File stego yang akan di-crack.
+- **`-wl`** : File wordlist yang akan digunakan dalam proses cracking.
+- **`-f`** : Memaksa menimpa file output jika file tersebut sudah ada sebelumnya.
+- **`-v`** : Menampilkan informasi rinci (verbose) selama proses cracking.
+
+> Untuk penggunaan lebih lanjut ketikkan perintah '`stegseek --help`'
