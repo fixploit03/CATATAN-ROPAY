@@ -1,6 +1,9 @@
 # Stegseek 
 
-Stegseek adalah cracker steghide secepat kilat yang dapat digunakan untuk mengekstrak data tersembunyi dari file. Ia dibuat sebagai cabang dari proyek steghide asli dan, sebagai hasilnya, ia ribuan kali lebih cepat dibandingkan cracker lainnya dan dapat menjalankan keseluruhan rockyou.txt* dalam waktu kurang dari 2 detik.
+![Artikel dibuat oleh fixploit03](https://img.shields.io/badge/Artikel%20dibuat%20oleh-fixploit03-blue.svg)
+![Jumlah Stars](https://img.shields.io/github/stars/fixploit03/CATATAN-ROPAY?style=social)
+
+`Stegseek` adalah cracker steghide secepat kilat yang dapat digunakan untuk mengekstrak data tersembunyi dari file. Ia dibuat sebagai cabang dari proyek steghide asli dan, sebagai hasilnya, ia ribuan kali lebih cepat dibandingkan cracker lainnya dan dapat menjalankan keseluruhan rockyou.txt* dalam waktu kurang dari 2 detik.
 
 > _Sumber : [https://github.com/RickdeJager/stegseek#zap-stegseek](https://github.com/RickdeJager/stegseek#zap-stegseek)_
 
