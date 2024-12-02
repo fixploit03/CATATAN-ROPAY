@@ -29,3 +29,6 @@ if [ -d "$FOLDER_PATH" ]; then
 else
     echo "Folder '$FOLDER_PATH' TIDAK ditemukan."
 fi
+
+
+aHR0cHM6Ly9lLWhlbnRhaS5vcmcvZy8zMTI4MzA4LzZlMjdhNzZjNGYvCg==
