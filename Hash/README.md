@@ -49,7 +49,7 @@
    - Input: `HEllo, World!` → `SHA-1`:
 8430358a15a560c124ff713fd4849516e885e0a7
 
-## Manfaat Hash dalam keamanan Cyber 
+## Manfaat Hash
    
 1. **Verifikasi Integritas Data**
    
