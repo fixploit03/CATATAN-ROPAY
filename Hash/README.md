@@ -1,3 +1,11 @@
+## Daftar Isi
+
+- [Apa itu Hash](https://github.com/fixploit03/CATATAN-ROPAY/tree/main/Hash#apa-itu-hash)
+- [Sifat-Sifat Fungsi Hash](https://github.com/fixploit03/CATATAN-ROPAY/tree/main/Hash#sifat-sifat-fungsi-hash)
+- [Manfaat Hash](https://github.com/fixploit03/CATATAN-ROPAY/tree/main/Hash#manfaat-hash)
+- [Jenis-jenis Hash yang Umum Digunakan](https://github.com/fixploit03/CATATAN-ROPAY/tree/main/Hash#jenis-jenis-hash-yang-umum-digunakan)
+
+
 # Hash
 
 ![](https://github.com/fixploit03/CATATAN-ROPAY/blob/main/Hash/images%20(19).jpeg)
