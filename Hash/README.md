@@ -12,8 +12,8 @@
 
   **Contoh**:
 
-  - Input: `Hello, World`
-  - Hash: `9af2f8218b150c351ad802c6f3d66abe` (MD5)
+  - Input: `Hello, World!`
+  - Hash: `bea8252ff4e80f41719ea13cdf007273` (MD5)
 
 2. **Non-Reversible (One-Way)**
    
@@ -29,8 +29,8 @@
    
    **Contoh**:
 
-   - `Hello` → Hello, 09f7e02f1290be211da707a266f153b3 (MD5, 128-bit)
-   - `World!` → 721555611292f461f890ba3a1dce279a (MD5, 128-bit)
+   - `Hello` → Hello, 09f7e02f1290be211da707a266f153b3 (MD5)
+   - `World!` → 721555611292f461f890ba3a1dce279a (MD5)
 
 5. **Cepat Dihitung**
    
