@@ -1,5 +1,7 @@
 # Hash
 
+![](https://github.com/fixploit03/CATATAN-ROPAY/blob/main/Hash/images%20(19).jpeg)
+
 ## Apa itu Hash
 
 `Hash adalah keluaran dari fungsi hash, sebuah algoritma matematika yang menerima data masukan dengan ukuran arbitrer (tidak tetap) dan menghasilkan keluaran (hash value) dengan panjang tetap.` Fungsi hash termasuk kategori algoritma kriptografi dan memiliki sifat-sifat tertentu yang membuatnya berguna dalam keamanan siber.
