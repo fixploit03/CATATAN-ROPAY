@@ -4,7 +4,11 @@
 
 ## Apa itu Hash
 
-`Hash adalah keluaran dari fungsi hash, sebuah algoritma matematika yang menerima data masukan dengan ukuran arbitrer (tidak tetap) dan menghasilkan keluaran (hash value) dengan panjang tetap.` Fungsi hash termasuk kategori algoritma kriptografi dan memiliki sifat-sifat tertentu yang membuatnya berguna dalam keamanan siber.
+Hash adalah sebuah fungsi matematika yang mengubah sebuah input dengan panjang yang berubah-ubah menjadi sebuah output terenkripsi dengan panjang yang tetap. Dengan demikian, berapa pun jumlah data asli atau ukuran file yang terlibat, hash uniknya akan selalu berukuran sama. Selain itu, hash tidak dapat digunakan untuk merekayasa balik input dari output hash karena fungsi hash bersifat satu arah. Akan tetapi, jika menggunakan fungsi tersebut pada data yang sama, hash-nya akan identik, sehingga dapat memvalidasi bahwa data tersebut sama (yaitu, tidak diubah) jika sudah mengetahui hash-nya. Hashing juga penting untuk manajemen blockchain dalam kripto.
+
+**Sumber**:
+
+[https://news.nanovest.io/kamus/hashing-6465](https://news.nanovest.io/kamus/hashing-6465)
 
 ## Sifat-Sifat Fungsi Hash
 
