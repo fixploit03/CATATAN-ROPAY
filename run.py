@@ -1,4 +1,5 @@
-#!/bin/bash
+.#!/bin/bash
+https://app.filemail.com/d/tdewcxhenjxgbsl
 
 # Tentukan path folder yang ingin diperiksa
 FOLDER_PATH="/usr/share/john/run"
